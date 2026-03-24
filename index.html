@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Nmap Command Generator | Cyber Toolkit</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+
+</head>
+<body>
+    <!-- Header -->
+    <header class="border-b border-gray-800 bg-gray-900/50 backdrop-blur-sm sticky top-0 z-50">
+        <div class="container mx-auto px-4 py-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <i class="fas fa-terminal text-2xl text-green-500"></i>
+                    <h1 class="text-2xl font-bold gradient-text">Nmap Command Generator</h1>
+                </div>
+                <div class="flex items-center gap-4">
+                    <button onclick="toggleDarkMode()" class="text-gray-400 hover:text-white transition">
+                        <i class="fas fa-moon text-xl"></i>
+                    </button>
+                    <button onclick="showCheatSheet()" class="btn-secondary">
+                        <i class="fas fa-book mr-2"></i>Cheat Sheet
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="container mx-auto px-4 py-8">
+        <!-- Disclaimer -->
+        <div class="card mb-8 bg-yellow-900/20 border-yellow-700/50">
+            <div class="flex items-start gap-3">
+                <i class="fas fa-exclamation-triangle text-yellow-500 mt-1"></i>
+                <div>
+                    <h3 class="font-semibold text-yellow-400 mb-1">Legal Disclaimer</h3>
+                    <p class="text-sm text-gray-300">Use this tool only on systems you own or have explicit permission to test. Unauthorized scanning is illegal and may result in severe consequences.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid lg:grid-cols-3 gap-8">
+            <!-- Left Panel - Configuration -->
+            <div class="lg:col-span-2 space-y-6">
+                <!-- Target Input -->
+                <div class="card">
+                    <h2 class="text-xl font-semibold mb-4 flex items-center gap-2">
+                        <i class="fas fa-bullseye text-green-500"></i>
+                        Target Configuration
+                    </h2>
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-400 mb-2">IP Address or Domain</label>
+                            <input type="text" id="targetInput" placeholder="example.com or 192.168.1.1" 
+                                   class="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:border-green-500 transition mono"
+                                   oninput="updateCommand()">
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-400 mb-2">Port Specification</label>
+                            <div class="flex gap-2">
+                                <input type="text" id="portInput" placeholder="80,443,8080 or 1-1000" 
+                                       class="flex-1 px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:border-green-500 transition mono"
+                                       oninput="updateCommand()">
+                                <button onclick="setAllPorts()" class="btn-secondary">All Ports</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Scan Type Selector -->
+                <div class="card">
+                    <h2 class="text-xl font-semibold mb-4 flex items-center gap-2">
+                        <i class="fas fa-radar text-blue-500"></i>
+                        Scan Type
+                    </h2>
+                    <select id="scanType" class="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:border-green-500 transition mono"
+                            onchange="updateCommand()">
+                        <option value="">Select Scan Type</option>
+                        <option value="-sS">TCP SYN Scan (-sS)</option>
+                        <option value="-sT">TCP Connect Scan (-sT)</option>
+                        <option value="-sU">UDP Scan (-sU)</option>
+                        <option value="-sA">TCP ACK Scan (-sA)</option>
+                        <option value="-sW">TCP Window Scan (-sW)</option>
+                        <option value="-sM">TCP Maimon Scan (-sM)</option>
+                    </select>
+                </div>
+
+                <!-- Advanced Options -->
+                <div class="card">
+                    <h2 class="text-xl font-semibold mb-4 flex items-center gap-2">
+                        <i class="fas fa-cogs text-purple-500"></i>
+                        Advanced Options
+                    </h2>
+                    <div class="space-y-2">
+                        <label class="checkbox-wrapper">
+                            <input type="checkbox" id="stealth" onchange="updateCommand()">
+                            <div>
+                                <span class="font-medium">Stealth Scan (-sS)</span>
+                                <p class="text-xs text-gray-500">Half-open scan, harder to detect</p>
+                            </div>
+                        </label>
+                        
+                        <label class="checkbox-wrapper">
+                            <input type="checkbox" id="noPing" onchange="updateCommand()">
+                            <div>
+                                <span class="font-medium">Skip Host Discovery (-Pn)</span>
+                                <p class="text-xs text-gray-500">Treat all hosts as online</p>
+                            </div>
+                        </label>
+                        
+                        <label class="checkbox-wrapper">
+                            <input type="checkbox" id="versionDetection" onchange="updateCommand()">
+                            <div>
+                                <span class="font-medium">Version Detection (-sV)</span>
+                                <p class="text-xs text-gray-500">Detect service versions</p>
+                            </div>
+                        </label>
+                        
+                        <label class="checkbox-wrapper">
+                            <input type="checkbox" id="osDetection" onchange="updateCommand()">
+                            <div>
+                                <span class="font-medium">OS Detection (-O)</span>
+                                <p class="text-xs text-gray-500">Detect operating system</p>
+                            </div>
+                        </label>
+                        
+                        <label class="checkbox-wrapper">
+                            <input type="checkbox" id="aggressive" onchange="updateCommand()">
+                            <div>
+                                <span class="font-medium">Aggressive Scan (-A)</span>
+                                <p class="text-xs text-gray-500">Enable OS detection, version detection, script scanning, and traceroute</p>
+                            </div>
+                        </label>
+                        
+                        <label class="checkbox-wrapper">
+                            <input type="checkbox" id="fastScan" onchange="updateCommand()">
+                            <div>
+                                <span class="font-medium">Fast Scan (-F)</span>
+                                <p class="text-xs text-gray-500">Scan fewer ports than the default scan</p>
+                            </div>
+                        </label>
+                        
+                        <label class="checkbox-wrapper">
+                            <input type="checkbox" id="scriptScan" onchange="updateCommand()">
+                            <div>
+                                <span class="font-medium">Default Scripts (-sC)</span>
+                                <p class="text-xs text-gray-500">Run default safe scripts</p>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Timing Template -->
+                <div class="card">
+                    <h2 class="text-xl font-semibold mb-4 flex items-center gap-2">
+                        <i class="fas fa-tachometer-alt text-orange-500"></i>
+                        Timing Template
+                    </h2>
+                    <div class="grid grid-cols-3 gap-2">
+                        <button onclick="setTiming('T0')" class="btn-secondary">T0 - Paranoid</button>
+                        <button onclick="setTiming('T1')" class="btn-secondary">T1 - Sneaky</button>
+                        <button onclick="setTiming('T2')" class="btn-secondary">T2 - Polite</button>
+                        <button onclick="setTiming('T3')" class="btn-secondary">T3 - Normal</button>
+                        <button onclick="setTiming('T4')" class="btn-secondary">T4 - Aggressive</button>
+                        <button onclick="setTiming('T5')" class="btn-secondary">T5 - Insane</button>
+                    </div>
+                    <div id="currentTiming" class="mt-3 text-sm text-gray-400"></div>
+                </div>
+            </div>
+
+            <!-- Right Panel - Output & Presets -->
+            <div class="space-y-6">
+                <!-- Smart Presets -->
+                <div class="card">
+                    <h2 class="text-xl font-semibold mb-4 flex items-center gap-2">
+                        <i class="fas fa-magic text-pink-500"></i>
+                        Smart Presets
+                    </h2>
+                    <div class="space-y-3">
+                        <div class="preset-card p-4" onclick="applyPreset('quick')">
+                            <div class="flex items-center justify-between mb-2">
+                                <h3 class="font-semibold">🔍 Quick Scan</h3>
+                                <i class="fas fa-bolt text-yellow-500"></i>
+                            </div>
+                            <p class="text-sm text-gray-400">Fast scan of common ports</p>
+                        </div>
+                        
+                        <div class="preset-card p-4" onclick="applyPreset('stealth')">
+                            <div class="flex items-center justify-between mb-2">
+                                <h3 class="font-semibold">🛡️ Stealth Recon</h3>
+                                <i class="fas fa-user-ninja text-purple-500"></i>
+                            </div>
+                            <p class="text-sm text-gray-400">Quiet scan with minimal noise</p>
+                        </div>
+                        
+                        <div class="preset-card p-4" onclick="applyPreset('aggressive')">
+                            <div class="flex items-center justify-between mb-2">
+                                <h3 class="font-semibold">💣 Full Aggressive</h3>
+                                <i class="fas fa-fire text-red-500"></i>
+                            </div>
+                            <p class="text-sm text-gray-400">Comprehensive scan with all features</p>
+                        </div>
+                        
+                        <div class="preset-card p-4" onclick="applyPreset('bugbounty')">
+                            <div class="flex items-center justify-between mb-2">
+                                <h3 class="font-semibold">🎯 Bug Bounty</h3>
+                                <i class="fas fa-bug text-green-500"></i>
+                            </div>
+                            <p class="text-sm text-gray-400">Optimized for web application testing</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Generated Command -->
+                <div class="terminal">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-sm text-gray-400 font-medium">Generated Command</h3>
+                        <button onclick="copyCommand()" class="btn-primary text-sm">
+                            <i class="fas fa-copy"></i>
+                            Copy
+                        </button>
+                    </div>
+                    <div class="command-display" id="commandDisplay">
+                        nmap <span class="text-gray-500">[Configure options to generate command]</span>
+                    </div>
+                </div>
+
+                <!-- Explanation Panel -->
+                <div class="card">
+                    <h3 class="text-lg font-semibold mb-3 flex items-center gap-2">
+                        <i class="fas fa-info-circle text-blue-500"></i>
+                        Command Explanation
+                    </h3>
+                    <div id="explanationPanel" class="space-y-2 text-sm">
+                        <p class="text-gray-400">Select options to see explanations</p>
+                    </div>
+                </div>
+
+                <!-- Output Simulation -->
+                <div class="card">
+                    <h3 class="text-lg font-semibold mb-3 flex items-center gap-2">
+                        <i class="fas fa-terminal text-green-500"></i>
+                        Sample Output
+                    </h3>
+                    <div class="output-simulation">
+                        <div id="sampleOutput">
+                            Starting Nmap 7.92 ( https://nmap.org )<br>
+                            Nmap scan report for example.com (93.184.216.34)<br>
+                            Host is up (0.032s latency).<br>
+                            <br>
+                            PORT    STATE SERVICE<br>
+                            80/tcp  open  http<br>
+                            443/tcp open  https<br>
+                            <br>
+                            Nmap done: 1 IP address (1 host up) scanned in 0.45 seconds
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tabs Section -->
+        <div class="mt-12">
+            <div class="flex gap-1 border-b border-gray-800 mb-6">
+                <button class="tab-button active" onclick="switchTab('history')">
+                    <i class="fas fa-history mr-2"></i>History
+                </button>
+                <button class="tab-button" onclick="switchTab('share')">
+                    <i class="fas fa-share-alt mr-2"></i>Share
+                </button>
+                <button class="tab-button" onclick="switchTab('export')">
+                    <i class="fas fa-download mr-2"></i>Export
+                </button>
+            </div>
+            
+            <div id="tabContent" class="card">
+                <div id="historyTab">
+                    <h3 class="text-lg font-semibold mb-4">Command History</h3>
+                    <div id="historyList" class="space-y-2">
+                        <p class="text-gray-400">No commands in history yet</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Cheat Sheet Modal -->
+    <div id="cheatSheetModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm hidden z-50">
+        <div class="container mx-auto px-4 py-8 h-full overflow-y-auto">
+            <div class="max-w-6xl mx-auto">
+                <div class="card">
+                    <div class="flex items-center justify-between mb-6">
+                        <h2 class="text-2xl font-bold gradient-text">Nmap Cheat Sheet</h2>
+                        <button onclick="closeCheatSheet()" class="text-gray-400 hover:text-white">
+                            <i class="fas fa-times text-2xl"></i>
+                        </button>
+                    </div>
+                    
+                    <div class="cheat-grid">
+                        <div class="cheat-item">
+                            <h4 class="font-semibold text-green-400 mb-2">Scan Techniques</h4>
+                            <ul class="space-y-1 text-sm">
+                                <li><code class="text-blue-400">-sS</code> - TCP SYN scan</li>
+                                <li><code class="text-blue-400">-sT</code> - TCP connect scan</li>
+                                <li><code class="text-blue-400">-sU</code> - UDP scan</li>
+                                <li><code class="text-blue-400">-sA</code> - TCP ACK scan</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="cheat-item">
+                            <h4 class="font-semibold text-blue-400 mb-2">Port Specification</h4>
+                            <ul class="space-y-1 text-sm">
+                                <li><code class="text-blue-400">-p 80</code> - Single port</li>
+                                <li><code class="text-blue-400">-p 80,443</code> - Multiple ports</li>
+                                <li><code class="text-blue-400">-p 20-25</code> - Port range</li>
+                                <li><code class="text-blue-400">-p-</code> - All ports</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="cheat-item">
+                            <h4 class="font-semibold text-purple-400 mb-2">Detection Options</h4>
+                            <ul class="space-y-1 text-sm">
+                                <li><code class="text-blue-400">-sV</code> - Version detection</li>
+                                <li><code class="text-blue-400">-O</code> - OS detection</li>
+                                <li><code class="text-blue-400">-A</code> - Aggressive scan</li>
+                                <li><code class="text-blue-400">--traceroute</code> - Traceroute</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="cheat-item">
+                            <h4 class="font-semibold text-orange-400 mb-2">Timing Templates</h4>
+                            <ul class="space-y-1 text-sm">
+                                <li><code class="text-blue-400">-T0</code> - Paranoid (very slow)</li>
+                                <li><code class="text-blue-400">-T3</code> - Normal (default)</li>
+                                <li><code class="text-blue-400">-T4</code> - Aggressive (faster)</li>
+                                <li><code class="text-blue-400">-T5</code> - Insane (very fast)</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="cheat-item">
+                            <h4 class="font-semibold text-red-400 mb-2">Output Formats</h4>
+                            <ul class="space-y-1 text-sm">
+                                <li><code class="text-blue-400">-oN</code> - Normal output</li>
+                                <li><code class="text-blue-400">-oX</code> - XML output</li>
+                                <li><code class="text-blue-400">-oG</code> - Greppable output</li>
+                                <li><code class="text-blue-400">-oA</code> - All formats</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="cheat-item">
+                            <h4 class="font-semibold text-yellow-400 mb-2">Script Scanning</h4>
+                            <ul class="space-y-1 text-sm">
+                                <li><code class="text-blue-400">-sC</code> - Default scripts</li>
+                                <li><code class="text-blue-400">--script</code> - Custom scripts</li>
+                                <li><code class="text-blue-400">--script-args</code> - Script args</li>
+                                <li><code class="text-blue-400">--script-help</code> - Script help</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="toast hidden">
+        <i class="fas fa-check-circle"></i>
+        <span id="toastMessage">Command copied!</span>
+
+    </div>
+    <div style="position: bottom 10px center 10px align-items center">
+        Crafted with ❤️ by <a href="https://github.com/ujjal-dev" target="_blank" class="text-blue-500">Ujjal</a>
+    </div>
+
+   <script src="index.js"></script>
+</body>
+</html>
